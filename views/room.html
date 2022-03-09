@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head></head>
+<body>
+<div id="app">
+    <h1>{{room}}</h1>
+    <div id="publishers"></div>
+    <div id="subscribers"></div>
+    <div id="chat">
+        <ul></ul>
+        <input type="text">
+        <button>Send</button>
+    </div>
+</div>
+<script src="https://static.opentok.com/v2/js/opentok.min.js"></script>
+<script>
+    let apiKey = '{{apiKey}}';
+    let sessionId = '{{sessionId}}';
+    let token = '{{token}}';
+
+    let session = OT.initSession(apiKey, sessionId);
+    let camera = OT.initPublisher('publishers');
+    session.connect(token, function () {
+        session.publish(camera);
+    });
+
+    session.on('streamCreated', function (event) {
+        session.subscribe(event.stream, 'subscribers', {
+            insertMode: 'append'
+        });
+    });
+
+    let input = document.querySelector('input');
+    let ul = document.querySelector('ul');
+    let button = document.querySelector('button');
+
+    button.addEventListener('click', function () {
+        session.signal({
+            type: 'chat',
+            data: input.value
+        });
+        input.value = '';
+    });
+
+    session.on('signal:chat', function (event) {
+        let li = document.createElement('li');
+        li.innerHTML = event.data;
+        ul.appendChild(li);
+    });
+
+</script>
+</body>
+</html>
